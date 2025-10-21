@@ -6,7 +6,7 @@ Este projeto demonstra uma solução completa e profissional para autenticação
 
 O projeto está implantado na plataforma Render e pode ser acessado em tempo real:
 
-**URL Pública:**(https://project-login-flask.onrender.com/)
+**URL Pública:**[(https://project-login-flask.onrender.com/)]
 
 ---
 ## Funcionalidades Chave
