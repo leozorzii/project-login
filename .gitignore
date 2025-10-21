@@ -1,0 +1,11 @@
+# Arquivos gerados pelo Python/Flask
+__pycache__/
+*.pyc
+
+# Ambiente Virtual
+.venv/
+venv/
+
+# Dados e logs locais
+usuarios.json
+*.log

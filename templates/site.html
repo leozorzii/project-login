@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Cadastro {% block title %}{% endblock %}</title> 
+    <title>Sistema Web | {% block title %}{% endblock %}</title> 
     
-   <style>
+    <style>
+/* SEU CÓDIGO CSS MODERNO ORGANIZADO (MANTIDO) */
 body {
     background: radial-gradient(
         circle at center, 
-        #1a0505 0%,      
-        #000000 70%,     
-        #0d0d0d 100%     
+        #1a0505 0%, 
+        #000000 70%, 
+        #0d0d0d 100% 
     );
     background-attachment: fixed;
     
@@ -129,7 +130,7 @@ a:hover {
     display: inline-block;
 }
 
-/* ESTILOS PARA MENSAGENS DE ERRO E SUCESSO */
+/* --- ESTILOS PARA MENSAGENS DE ERRO E SUCESSO --- */
 
 .message-box {
     width: 100%; 
@@ -181,8 +182,16 @@ a:hover {
             
             <label for="loginPassword">Senha:</label>
             <input type="password" id="loginPassword" name="password" required>
+
+            <p style="text-align: right; margin-bottom: 20px;">
+            <a href="{{ url_for('exibir_esqueci_senha') }}" 
+               style="border: none; padding: 0; font-size: 0.8em; color: #FF6666;">
+                Esqueceu a senha?
+            </a>
+        </p>
             
             <input type="submit" value="Entrar">
+
         </form>
         <a href="{{ url_for('index') }}">Voltar</a>
     </div>
@@ -253,13 +262,30 @@ a:hover {
 
             <input type="hidden" name="stripeToken" id="stripeToken">
 
-            <div id="card-errors" role="alert" style="color: #FF6666; margin-top: 10px;"></div>
+            <div id="card-errors" role="alert" style="color: #FF66FF; margin-top: 10px;"></div>
 
             <input type="submit" value="Pagar R$ {{ (preco / 100) | round(2) }}">
         </form>
         
         <a href="{{ url_for('home') }}">Voltar</a>
     </div>
+
+        <div id="esqueci_senha" class="page {% if pagina_ativa == 'esqueci_senha' %}active{% endif %}">
+    <h1>Recuperar Senha</h1>
+    
+    {% if erro %}
+        <div class="message-box error">{{ erro }}</div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('processar_esqueci_senha') }}">
+        <label for="email">Email de Cadastro:</label>
+        <input type="email" id="email" name="email" required>
+        
+        <input type="submit" value="Enviar Instruções">
+    </form>
+    
+    <a href="{{ url_for('exibir_login') }}">Voltar ao Login</a>
+</div>
     
     <script src="https://js.stripe.com/v3/"></script>
     <script>
@@ -285,18 +311,15 @@ a:hover {
         var stripeTokenInput = document.getElementById('stripeToken');
 
         form.addEventListener('submit', function(event) {
-            event.preventDefault(); // Impede o envio normal do formulário
+            event.preventDefault(); 
             
-            // Desativa o botão temporariamente
             form.querySelector('input[type="submit"]').disabled = true;
 
             stripe.createToken(card).then(function(result) {
                 if (result.error) {
-                    // Informa o usuário sobre erros de validação
                     cardErrors.textContent = result.error.message;
-                    form.querySelector('input[type="submit"]').disabled = false; // Reativa
+                    form.querySelector('input[type="submit"]').disabled = false; 
                 } else {
-                    // Token gerado: Insere no campo oculto e envia o formulário ao Flask
                     stripeTokenInput.value = result.token.id;
                     form.submit();
                 }
