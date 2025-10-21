@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Cadastro {% block title %}{% endblock %}</title> 
+    
+   <style>
+body {
+    background: radial-gradient(
+        circle at center, 
+        #1a0505 0%,      
+        #000000 70%,     
+        #0d0d0d 100%     
+    );
+    background-attachment: fixed;
+    
+    color: #f7f7f7; 
+    font-family: 'Consolas', 'Courier New', monospace;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    min-height: 100vh;
+    text-align: center;
+}
+
+h1, h2 {
+    color: #FF1A1A; 
+    text-shadow: 0 0 8px rgba(255, 50, 50, 0.8);
+    margin-bottom: 20px;
+}
+
+.page {
+    background-color: #1a1a1a; 
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.3); 
+    border: 1px solid rgba(255, 0, 0, 0.1); 
+    width: 100%;
+    max-width: 400px;
+    box-sizing: border-box;
+    display: none; 
+}
+
+.active {
+    display: block;
+}
+
+form {
+    margin: 20px 0;
+    padding: 20px 0;
+}
+
+label {
+    display: block;
+    text-align: left;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    color: #FF6666;
+    padding: 0;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+#card-element {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    background-color: #222;
+    color: #f7f7f7;
+    border: 1px solid #444;
+    border-left: 5px solid #FF0000;
+    border-radius: 3px;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+    min-height: 40px; 
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+    border-color: #FF6666;
+    outline: none;
+}
+
+input[type="submit"] {
+    width: 100%;
+    background-color: #FF0000;
+    color: black;
+    border: 2px solid #FF0000;
+    padding: 12px 20px;
+    margin-top: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 3px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+input[type="submit"]:hover {
+    background-color: black;
+    color: #FF0000;
+    border-color: #FF0000;
+}
+
+a {
+    color: #FF0000;
+    text-decoration: none;
+    margin: 10px 5px;
+    padding: 10px 15px;
+    border: 2px solid #FF0000;
+    display: inline-block;
+    border-radius: 3px;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+a:hover {
+    background-color: #FF0000;
+    color: black;
+}
+
+.g-recaptcha {
+    margin: 20px auto;
+    display: inline-block;
+}
+
+/* ESTILOS PARA MENSAGENS DE ERRO E SUCESSO */
+
+.message-box {
+    width: 100%; 
+    padding: 10px;
+    margin: 0 auto 20px auto; 
+    border-radius: 4px;
+    font-size: 0.9em;
+    text-align: center;
+    box-sizing: border-box;
+    font-weight: bold;
+}
+
+.error {
+    background-color: rgba(255, 0, 0, 0.1); 
+    color: #FF6666;
+    border: 1px solid #FF0000;
+}
+
+.success {
+    background-color: rgba(0, 255, 0, 0.1); 
+    color: #00FF00;
+    border: 1px solid #00AA00;
+}
+</style>
+    
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+    
+    <div id="index" class="page {% if pagina_ativa == 'index' %}active{% endif %}">
+        <h1>Bem-vindo ao Nosso Site</h1>
+        <a href="{{ url_for('exibir_login') }}">Login</a>
+        <a href="{{ url_for('exibir_cadastro') }}">Cadastro</a>
+    </div>
+
+    <div id="login" class="page {% if pagina_ativa == 'login' %}active{% endif %}">
+        <h1>Login</h1>
+        
+        {% if erro %}
+            <div class="message-box error">{{ erro }}</div>
+        {% endif %}
+        {% if sucesso %}
+            <div class="message-box success">{{ sucesso }}</div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('processar_login') }}">
+            <label for="loginUsername">Usuário:</label>
+            <input type="text" id="loginUsername" name="username" required>
+            
+            <label for="loginPassword">Senha:</label>
+            <input type="password" id="loginPassword" name="password" required>
+            
+            <input type="submit" value="Entrar">
+        </form>
+        <a href="{{ url_for('index') }}">Voltar</a>
+    </div>
+
+    <div id="cadastro" class="page {% if pagina_ativa == 'cadastro' %}active{% endif %}">
+        <h1>Cadastro</h1>
+        
+        {% if erro %}
+            <div class="message-box error">{{ erro }}</div>
+        {% endif %}
+        {% if sucesso %}
+            <div class="message-box success">{{ sucesso }}</div>
+        {% endif %}
+        
+        <form method="POST" action="{{ url_for('processar_cadastro') }}">
+            <label for="cadastroUsername">Usuário:</label>
+            <input type="text" id="cadastroUsername" name="username" required>
+            <label for="cadastroEmail">Email:</label>
+            <input type="email" id="cadastroEmail" name="email" required>
+            <label for="cadastroPassword">Senha:</label>
+            <input type="password" id="cadastroPassword" name="password" required>
+            
+            <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div> 
+            
+            <input type="submit" value="Cadastrar">
+        </form>
+        <a href="{{ url_for('index') }}">Voltar</a>
+    </div>
+
+    <div id="dashboard" class="page {% if pagina_ativa == 'dashboard' %}active{% endif %}">
+        <h1>Dashboard</h1>
+        
+        {% if sucesso_pagamento %}
+            <div class="message-box success">{{ sucesso_pagamento }}</div>
+        {% endif %}
+
+        <p>Bem-vindo, {{ session.get('username') }}! Você está logado.</p>
+        <a href="{{ url_for('exibir_assinatura') }}">Assinar Produto</a>
+        <a href="{{ url_for('logout') }}">Sair</a>
+    </div>
+
+    <div id="assinatura" class="page {% if pagina_ativa == 'assinatura' %}active{% endif %}">
+        <h1>Assinar Produto</h1>
+        <p>Você deseja assinar nosso produto? Clique abaixo para prosseguir.</p>
+        <a href="{{ url_for('exibir_cobranca') }}">Prosseguir para Cobrança</a> 
+        <a href="{{ url_for('home') }}">Voltar</a>
+    </div>
+
+    <div id="cobranca" class="page {% if pagina_ativa == 'cobranca' %}active{% endif %}">
+        <h1>Página de Cobrança</h1>
+        
+        {% if erro %}
+            <div class="message-box error">{{ erro }}</div>
+        {% endif %}
+        {% if sucesso %}
+            <div class="message-box success">{{ sucesso }}</div>
+        {% endif %}
+        
+        <p>Valor: R$ {{ (preco / 100) | round(2) }}</p>
+
+        <form action="{{ url_for('processar_pagamento') }}" method="POST" id="payment-form">
+            <label for="card-element">
+                Detalhes do Cartão de Crédito
+            </label>
+            
+            <div id="card-element">
+              </div>
+
+            <input type="hidden" name="stripeToken" id="stripeToken">
+
+            <div id="card-errors" role="alert" style="color: #FF6666; margin-top: 10px;"></div>
+
+            <input type="submit" value="Pagar R$ {{ (preco / 100) | round(2) }}">
+        </form>
+        
+        <a href="{{ url_for('home') }}">Voltar</a>
+    </div>
+    
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        // Lógica do Stripe Elements para o formulário de cobrança
+        var stripe = Stripe("{{ stripe_pk }}");
+        var elements = stripe.elements();
+
+        var card = elements.create('card', {
+            style: {
+                base: {
+                    color: '#f7f7f7',
+                    fontFamily: 'Consolas, monospace',
+                    '::placeholder': {
+                        color: '#666',
+                    },
+                }
+            }
+        });
+        card.mount('#card-element');
+
+        var form = document.getElementById('payment-form');
+        var cardErrors = document.getElementById('card-errors');
+        var stripeTokenInput = document.getElementById('stripeToken');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); // Impede o envio normal do formulário
+            
+            // Desativa o botão temporariamente
+            form.querySelector('input[type="submit"]').disabled = true;
+
+            stripe.createToken(card).then(function(result) {
+                if (result.error) {
+                    // Informa o usuário sobre erros de validação
+                    cardErrors.textContent = result.error.message;
+                    form.querySelector('input[type="submit"]').disabled = false; // Reativa
+                } else {
+                    // Token gerado: Insere no campo oculto e envia o formulário ao Flask
+                    stripeTokenInput.value = result.token.id;
+                    form.submit();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

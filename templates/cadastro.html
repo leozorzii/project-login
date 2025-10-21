@@ -1,0 +1,15 @@
+    <div id="cadastro" class="page">
+        <h1>Cadastro</h1>
+        <form id="cadastroForm">
+            <label for="cadastroUsername">Usuário:</label>
+            <input type="text" id="cadastroUsername" name="username" required>
+            <label for="cadastroEmail">Email:</label>
+            <input type="email" id="cadastroEmail" name="email" required>
+            <label for="cadastroPassword">Senha:</label>
+            <input type="password" id="cadastroPassword" name="password" required>
+            <div class="g-recaptcha" data-sitekey="f15p06a78"></div> <!-- Substitua pela sua chave do reCAPTCHA -->
+            <input type="submit" value="Cadastrar" onclick="handleCadastro(); return false;">
+        </form>
+        <a href="#" onclick="showPage('index')">Voltar</a>
+    </div>
+
