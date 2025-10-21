@@ -25,8 +25,11 @@ Este sistema foi construído para atender a padrões profissionais de segurança
 ## Instruções de Uso
 
 1.  Acesse o **URL Público** acima.
+ 
 2.  **CADASTRO:** Clique em **"Cadastro"**. Preencha os dados e **marque a caixa do reCAPTCHA**. A senha deve seguir o padrão de segurança (Mín. 8 caracteres, 1 maiúscula, 1 número, 1 símbolo).
+  
 3.  **LOGIN:** Faça login com suas novas credenciais.
+
 4.  **PAGAMENTO (Teste):** No Dashboard, vá para "Assinar Produto" e insira o cartão de teste do Stripe:
     * **Número do Cartão de Sucesso:** `4242 4242 4242 4242`
     * **Resultado:** O sistema atualizará seu status de assinatura para "Ativo".
