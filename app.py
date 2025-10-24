@@ -10,7 +10,6 @@ from typing import Dict, Any
 from random import choice 
 
 # --- CONFIGURAÇÃO DE CHAVES E PAGAMENTO (SEGURAS) ---
-# Chaves Lidas de Variáveis de Ambiente (NECESSÁRIO CONFIGURAR NO RENDER)
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'sk_teste_fallback_perigoso')
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLIC_KEY', 'pk_teste_fallback_perigoso')
 RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY', 'recap_teste_fallback_perigoso')
@@ -18,10 +17,12 @@ RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY', 'recap_teste_fallb
 # Chave pública do reCAPTCHA
 RECAPTCHA_SITE_KEY = "6Leh9u4rAAAAAAxlfmXnziGXU2pZl8xNVKKwBNDk" 
 
-# Demais configurações
+# --- VALORES CRÍTICOS ---
 PRECO_ASSINATURA = 5000 
-PRICE_ID = 'price_demo_premium_001' # ID de um Produto/Preço de Teste no Stripe (Placeholder)
+# USE O ID REAL QUE VOCÊ CRIOU NO PAINEL DO STRIPE
+PRICE_ID = 'price_1SLlpbRb1PvP6hnYUyJy7Z1V' 
 
+# Configuração de Validação
 A = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 a = "abcdefghijklmnopqrstuvwxyz"
 Num = "0123456789"
@@ -197,44 +198,37 @@ def processar_pagamento():
         return redirect(url_for('exibir_login')) 
     
     token_pagamento = request.form.get('stripeToken') 
-    stripe_email = request.form.get('stripeEmail') # NOVO: Captura o email do formulário
+    stripe_email = request.form.get('stripeEmail') 
 
     if not token_pagamento:
         return redirect(url_for('exibir_cobranca', erro="Erro: Token de pagamento não recebido."))
     
-    PRICE_ID = 'price_1SLlpbRb1PvP6hnYUyJy7Z1V'
-    
     try:
-        # 1. criar cliente no Stripe (Necessário para a Assinatura)
+        # 1. CRIAR CLIENTE (Customer) no Stripe
         customer = stripe.Customer.create(
-            email=stripe_email, # Usa o email do formulário
-            source=token_pagamento # Fonte de pagamento (o token do cartão)
+            email=stripe_email, 
+            source=token_pagamento
         )
 
         # 2. CRIAR ASSINATURA (Subscription)
         subscription = stripe.Subscription.create(
             customer=customer.id,
-            items=[{'price': PRICE_ID}], # Usa a constante PRICE_ID global
+            items=[{'price': PRICE_ID}], # Usa o ID global CORRETO
             default_payment_method=token_pagamento 
         )
         
-        # 3. VERIFICAR STATUS (Status real de uma nova assinatura)
+        # 3. VERIFICAR STATUS
         if subscription.status in ['active', 'trialing']:
-            # Se a assinatura for ATIVA (significa que o primeiro pagamento foi efetuado):
-            
-            # ATUALIZAR O STATUS NO JSON
             usuarios = carregar_usuarios()
             login = session['username']
             if login in usuarios:
                 usuarios[login]['status_assinatura'] = 'ativo'
-                # Atualiza o email do usuário no JSON com o que foi usado no Stripe
                 usuarios[login]['email'] = stripe_email
                 salvar_usuarios(usuarios)
             
             return redirect(url_for('home', sucesso_pagamento='Assinatura ativada com sucesso!'))
         
         else:
-            # Caso a assinatura não tenha sido ativada por falha de pagamento inicial
             return redirect(url_for('exibir_cobranca', erro='Falha ao criar assinatura. Cartão recusado.'))
 
     except stripe.error.CardError as e:
@@ -244,34 +238,6 @@ def processar_pagamento():
     except Exception as e:
         print(f"ERRO CRÍTICO NO PAGAMENTO/API: {e}")
         return redirect(url_for('exibir_cobranca', erro='Erro interno ao processar a assinatura.'))
-
-
-@app.route('/stripe-webhook', methods=['POST'])
-def stripe_webhook():
-    """
-    Endpoint para receber notificações de eventos do Stripe (Webhooks).
-    Essencial para monitorar o ciclo de vida da assinatura em produção.
-    """
-    payload = request.data
-    event = None
-
-    try:
-        # Nota: Em produção, você também deve verificar a assinatura do webhook
-        event = json.loads(payload)
-    except Exception as e:
-        # Retorna 400 se o JSON estiver inválido
-        return jsonify({'error': f"Erro ao processar JSON: {e}"}), 400
-
-    # Lógica de Tratamento de Eventos - O professor verá que este endpoint está pronto
-    if event['type'] == 'invoice.payment_succeeded':
-        print("WEBHOOK RECEBIDO: Pagamento Recorrente Processado com Sucesso!")
-        # Em uma implementação completa, a lógica de BD para renovação seria aqui.
-        
-    elif event['type'] == 'customer.subscription.deleted':
-        print("WEBHOOK RECEBIDO: Assinatura Cancelada. Atualizar status para 'inativo'.")
-        # Em uma implementação completa, a lógica de BD para cancelamento seria aqui.
-
-    return jsonify({'status': 'success'}), 200
 
 # --- V. RASTREAMENTO E OUTROS ---
 
