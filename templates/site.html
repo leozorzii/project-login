@@ -264,10 +264,14 @@ a:hover {
             <div class="message-box success">{{ sucesso }}</div>
         {% endif %}
         
-        <p>Valor: R$ {{ (preco / 100) | round(2) }}</p>
+        <p>Valor da Assinatura: R$ {{ (preco / 100) | round(2) }}</p>
 
         <form action="{{ url_for('processar_pagamento') }}" method="POST" id="payment-form">
-            <label for="card-element">
+           
+            <label for="stripeEmail">Email (Para Recibos Stripe):</label>
+        <input type="email" id="stripeEmail" name="stripeEmail" required 
+               value="{{ session.get('email') or session.get('username') ~ '@teste.com' }}"> 
+        <label for="card-element">
                 Detalhes do Cartão de Crédito
             </label>
             

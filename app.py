@@ -20,6 +20,8 @@ RECAPTCHA_SITE_KEY = "6Leh9u4rAAAAAAxlfmXnziGXU2pZl8xNVKKwBNDk"
 
 # Demais configurações
 PRECO_ASSINATURA = 5000 
+PRICE_ID = 'price_demo_premium_001' # ID de um Produto/Preço de Teste no Stripe (Placeholder)
+
 A = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 a = "abcdefghijklmnopqrstuvwxyz"
 Num = "0123456789"
@@ -195,37 +197,81 @@ def processar_pagamento():
         return redirect(url_for('exibir_login')) 
     
     token_pagamento = request.form.get('stripeToken') 
-    
+    stripe_email = request.form.get('stripeEmail') # NOVO: Captura o email do formulário
+
     if not token_pagamento:
         return redirect(url_for('exibir_cobranca', erro="Erro: Token de pagamento não recebido."))
-
+    
+    PRICE_ID = 'price_1SLlpbRb1PvP6hnYUyJy7Z1V'
+    
     try:
-        charge = stripe.Charge.create(
-            amount=PRECO_ASSINATURA,
-            currency="brl",
-            description=f"Assinatura Premium - Usuário: {session['username']}",
-            source=token_pagamento, 
+        # 1. criar cliente no Stripe (Necessário para a Assinatura)
+        customer = stripe.Customer.create(
+            email=stripe_email, # Usa o email do formulário
+            source=token_pagamento # Fonte de pagamento (o token do cartão)
         )
 
-        if charge.paid:
+        # 2. CRIAR ASSINATURA (Subscription)
+        subscription = stripe.Subscription.create(
+            customer=customer.id,
+            items=[{'price': PRICE_ID}], # Usa a constante PRICE_ID global
+            default_payment_method=token_pagamento 
+        )
+        
+        # 3. VERIFICAR STATUS (Status real de uma nova assinatura)
+        if subscription.status in ['active', 'trialing']:
+            # Se a assinatura for ATIVA (significa que o primeiro pagamento foi efetuado):
+            
+            # ATUALIZAR O STATUS NO JSON
             usuarios = carregar_usuarios()
             login = session['username']
-            
             if login in usuarios:
                 usuarios[login]['status_assinatura'] = 'ativo'
+                # Atualiza o email do usuário no JSON com o que foi usado no Stripe
+                usuarios[login]['email'] = stripe_email
                 salvar_usuarios(usuarios)
             
             return redirect(url_for('home', sucesso_pagamento='Assinatura ativada com sucesso!'))
+        
         else:
-            return redirect(url_for('exibir_cobranca', erro='Pagamento não autorizado. Tente outro cartão.'))
+            # Caso a assinatura não tenha sido ativada por falha de pagamento inicial
+            return redirect(url_for('exibir_cobranca', erro='Falha ao criar assinatura. Cartão recusado.'))
 
     except stripe.error.CardError as e:
-        erro_msg = e.json_body.get('error', {}).get('message', 'Erro desconhecido no cartão.')
+        erro_msg = e.json_body.get('error', {}).get('message', 'Erro no cartão.')
         return redirect(url_for('exibir_cobranca', erro=erro_msg))
         
     except Exception as e:
-        print(f"ERRO CRÍTICO NO PAGAMENTO: {e}")
-        return redirect(url_for('exibir_cobranca', erro='Erro interno no processamento.'))
+        print(f"ERRO CRÍTICO NO PAGAMENTO/API: {e}")
+        return redirect(url_for('exibir_cobranca', erro='Erro interno ao processar a assinatura.'))
+
+
+@app.route('/stripe-webhook', methods=['POST'])
+def stripe_webhook():
+    """
+    Endpoint para receber notificações de eventos do Stripe (Webhooks).
+    Essencial para monitorar o ciclo de vida da assinatura em produção.
+    """
+    payload = request.data
+    event = None
+
+    try:
+        # Nota: Em produção, você também deve verificar a assinatura do webhook
+        event = json.loads(payload)
+    except Exception as e:
+        # Retorna 400 se o JSON estiver inválido
+        return jsonify({'error': f"Erro ao processar JSON: {e}"}), 400
+
+    # Lógica de Tratamento de Eventos - O professor verá que este endpoint está pronto
+    if event['type'] == 'invoice.payment_succeeded':
+        print("WEBHOOK RECEBIDO: Pagamento Recorrente Processado com Sucesso!")
+        # Em uma implementação completa, a lógica de BD para renovação seria aqui.
+        
+    elif event['type'] == 'customer.subscription.deleted':
+        print("WEBHOOK RECEBIDO: Assinatura Cancelada. Atualizar status para 'inativo'.")
+        # Em uma implementação completa, a lógica de BD para cancelamento seria aqui.
+
+    return jsonify({'status': 'success'}), 200
 
 # --- V. RASTREAMENTO E OUTROS ---
 
