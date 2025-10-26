@@ -264,7 +264,7 @@ a:hover {
             <div class="message-box success">{{ sucesso }}</div>
         {% endif %}
         
-        <p>Valor da Assinatura: R$ {{ (preco / 100) | round(2) }}</p>
+        <p>Valor da Assinatura: R$ {{ (preco) | round(2) }}</p>
 
         <form action="{{ url_for('processar_pagamento') }}" method="POST" id="payment-form">
            
